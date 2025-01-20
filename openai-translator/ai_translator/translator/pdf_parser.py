@@ -9,19 +9,19 @@ class PDFParser:
     def __init__(self):
         pass
 
-    def parse_pdf(self, pdf_file_path: str, pages: Optional[int] = None) -> Book:
+    def parse_pdf(self, pdf_file_path: str, start_page: Optional[int] = None, end_page: Optional[int] = None) -> Book:
         book = Book(pdf_file_path)
 
         with pdfplumber.open(pdf_file_path) as pdf:
-            if pages is not None and pages > len(pdf.pages):
-                raise PageOutOfRangeException(len(pdf.pages), pages)
+            # Validate and adjust page range
+            total_pages = len(pdf.pages)
+            start_page = 1 if start_page is None else max(1, min(start_page, total_pages))
+            end_page = total_pages if end_page is None else min(end_page, total_pages)
+            
+            # Convert to 0-based index for pdfplumber
+            pages_to_process = pdf.pages[start_page-1:end_page]
 
-            if pages is None:
-                pages_to_parse = pdf.pages
-            else:
-                pages_to_parse = pdf.pages[:pages]
-
-            for pdf_page in pages_to_parse:
+            for pdf_page in pages_to_process:
                 page = Page()
 
                 # Store the original text content
